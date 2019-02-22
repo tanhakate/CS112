@@ -31,7 +31,8 @@ library(arm)
 data(lalonde)
 df_control = subset(lalonde, treat == 0)
 
-reg_control <- glm(re78 ~ age + educ + re74 + re75 + educ*re74 + educ*re75 + age*re74 + age*re75 + re74*re75, data=df_control, family = "binomial")
+reg_control <- lm(re78 ~ age + educ + re74 + re75 + I(educ*re74) + I(educ*re75) + I(age*re74) + I(age*re75) + I(age*age) + I(re74*re75), data=df_control)
+                   
 confint(reg_control)
 
 med_educ=median(df_control$educ)
@@ -54,7 +55,8 @@ for (age in 17:55){
       Simulation@coef[i,7] * med_educ*med_re75 +
       Simulation@coef[i,8] * age*med_re74 +
       Simulation@coef[i,9] * age*med_re75 +
-      Simulation@coef[i,10] * med_re74*med_re75 
+      Simulation@coef[i,10] * age*age +
+      Simulation@coef[i,11] * med_re74*med_re75 
     #+ rnorm(1,0,Simulation@sigma[i])
     # put preductedYs into a matrix
       storagedf[i,age-16] = predictedYs
@@ -74,15 +76,15 @@ for (i in 1:ncol(storagedf)) {
   
 }
 
-data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians, Upper_Quantile =upperbounds.medians, med_educ, med_re74, med_re75, med_educ*med_re74, med_educ*med_re75, age*med_re74, age*med_re75, med_re74*med_re75)
+data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians, Upper_Quantile =upperbounds.medians, med_educ, med_re74, med_re75, med_educ*med_re74, med_educ*med_re75, age*med_re74, age*med_re75, age*age, med_re74*med_re75)
 
 
 confidence_intervals_one <- quantile(storagedf, probs = c(0.025, 0.975))
 
 
-quant_re74 = quantile(df_control$re74)[4]
-quant_educ = quantile(df_control$educ)[4]
-quant_re75 = quantile(df_control$re75)[4]
+q_re74 = quantile(df_control$re74)[4]
+q_educ = quantile(df_control$educ)[4]
+q_re75 = quantile(df_control$re75)[4]
 
 storagedf1<- matrix(NA, nrow = 10000, ncol=39 )
 
@@ -91,14 +93,15 @@ for (age in 17:55){
     
     predictedYs <- Simulation@coef[i,1] * 1 + 
       Simulation@coef[i,2] * age + 
-      Simulation@coef[i,3] * quant_educ + 
-      Simulation@coef[i,4] * quant_re74 +
-      Simulation@coef[i,5] * quant_re75 +
-      Simulation@coef[i,6] * quant_educ*quant_re74 +
-      Simulation@coef[i,7] * quant_educ*quant_re75 +
-      Simulation@coef[i,8] * age*quant_re74 +
-      Simulation@coef[i,9] * age*quant_re75 +
-      Simulation@coef[i,10] * quant_re74*quant_re75 
+      Simulation@coef[i,3] * q_educ + 
+      Simulation@coef[i,4] * q_re74 +
+      Simulation@coef[i,5] * q_re75 +
+      Simulation@coef[i,6] * q_educ*q_re74 +
+      Simulation@coef[i,7] * q_educ*q_re75 +
+      Simulation@coef[i,8] * age*q_re74 +
+      Simulation@coef[i,9] * age*q_re75 +
+      Simulation@coef[i,10] * age*age +
+      Simulation@coef[i,11] * q_re74*q_re75 
     #+ rnorm(1,0,Simulation@sigma[i])
     # put preductedYs into a matrix
     storagedf1[i,age-16] = predictedYs
@@ -116,8 +119,8 @@ for (i in 1:ncol(storagedf1)) {
   upperbounds.medians1[i] = quantile(storagedf1[,i],0.975)
   
 }
-
-data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians1, Upper_Quantile =upperbounds.medians1, quant_educ, quant_re74, quant_re75, quant_educ*quant_re74, quant_educ*quant_re75, age*quant_re74, age*quant_re75, quant_re74*quant_re75)
+age <- c(17:55)
+data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians1, Upper_Quantile = upperbounds.medians1, q_educ, q_re74, q_re75, q_educ*q_re74, q_educ*q_re75, age*q_re74, age*q_re75, age*age, q_re74*q_re75)
 
 Simulation <- sim(reg_control, n.sims = 10000)
 
@@ -141,7 +144,8 @@ for (age in 17:55){
       Simulation@coef[i,7] * med_educ*med_re75 +
       Simulation@coef[i,8] * age*med_re74 +
       Simulation@coef[i,9] * age*med_re75 +
-      Simulation@coef[i,10] * med_re74*med_re75 
+      Simulation@coef[i,10] * age*age +
+      Simulation@coef[i,11] * med_re74*med_re75 
     + rnorm(1,0,Simulation@sigma[i])
     # put preductedYs into a matrix
     storagedf2[i,age-16] = predictedYs
@@ -158,23 +162,26 @@ for (i in 1:ncol(storagedf1)) {
   
 }
 
-data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians2, Upper_Quantile =upperbounds.medians2, med_educ, med_re74, med_re75, med_educ*med_re74, med_educ*med_re75, age*med_re74, age*med_re75, med_re74*med_re75)
+age <- c(17:55)
+
+data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians2, Upper_Quantile =upperbounds.medians2, med_educ, med_re74, med_re75, med_educ*med_re74, med_educ*med_re75, age*med_re74, age*med_re75,age*age, med_re74*med_re75)
 
 storagedf3<- matrix(NA, nrow = 10000, ncol=39 )
 
 for (age in 17:55){
   for(i in 1:10000){
     
-    predictedYs <- Simulation@coef[i,1] * 1 + 
-      Simulation@coef[i,2] * age + 
-      Simulation@coef[i,3] * quant_educ + 
-      Simulation@coef[i,4] * quant_re74 +
-      Simulation@coef[i,5] * quant_re75 +
-      Simulation@coef[i,6] * quant_educ*quant_re74 +
-      Simulation@coef[i,7] * quant_educ*quant_re75 +
-      Simulation@coef[i,8] * age*quant_re74 +
-      Simulation@coef[i,9] * age*quant_re75 +
-      Simulation@coef[i,10] * quant_re74*quant_re75 
+      predictedYs <- Simulation@coef[i,1] * 1 + 
+        Simulation@coef[i,2] * age + 
+        Simulation@coef[i,3] * q_educ + 
+        Simulation@coef[i,4] * q_re74 +
+        Simulation@coef[i,5] * q_re75 +
+        Simulation@coef[i,6] * q_educ*q_re74 +
+        Simulation@coef[i,7] * q_educ*q_re75 +
+        Simulation@coef[i,8] * age*q_re74 +
+        Simulation@coef[i,9] * age*q_re75 +
+        Simulation@coef[i,10] * age*age +
+        Simulation@coef[i,11] * q_re74*q_re75
       + rnorm(1,0,Simulation@sigma[i])
     # put preductedYs into a matrix
     storagedf3[i,age-16] = predictedYs
@@ -192,11 +199,16 @@ for (i in 1:ncol(storagedf3)) {
   upperbounds.medians3[i] = quantile(storagedf3[,i],0.975)
   
 }
+age <- c(17:55)
 
-data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians3, Upper_Quantile =upperbounds.medians3,quant_educ, quant_re74, quant_re75, quant_educ*quant_re74, quant_educ*quant_re75, age*quant_re74, age*quant_re75, quant_re74*quant_re75)
+data.frame(Age = as.numeric(age_list), Lower_Quantile = lowbounds.medians3, Upper_Quantile = upperbounds.medians3, q_educ, q_re74, q_re75, q_educ*q_re74, q_educ*q_re75, age*q_re74, age*q_re75, age*age, q_re74*q_re75)
 
-plot(x=c(1,100), y = c(1,100), type = "n", xlim = c(17,55), ylim = c(500,10000),
-     main = "95% Prediction Interval (PI) for re78", xlab = "Age of Subject",
+
+
+
+
+plot(x=c(1,100), y = c(1,100), type = "n", xlim = c(17,55), ylim = c(500,15000),
+     main = "95% Prediction Interval (PI) for re78 from Control Group", xlab = "Age of Subject",
      ylab = "95% PI")
 
 for (age in 17:55) {
@@ -211,8 +223,8 @@ for (age in 17:55) {
 
 legend("topleft", c("Using Median Values for educ, re74 and re75"), col=c("red"), lwd=4)
 
-plot(x=c(1,100), y = c(1,100), type = "n", xlim = c(17,55), ylim = c(500,10000),
-     main = "95% Prediction Interval (PI) for re78", xlab = "Age of Subject",
+plot(x=c(1,100), y = c(1,100), type = "n", xlim = c(17,55), ylim = c(500,15000),
+     main = "95% Prediction Interval (PI) for re78 from Control Group", xlab = "Age of Subject",
      ylab = "95% PI")
 
 for (age in 17:55) {
