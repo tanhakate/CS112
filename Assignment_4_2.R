@@ -70,13 +70,13 @@ for (wardur in 1:315) {
                mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1, 1*mean_logcost)
   X_control <- c(mean_wartype, mean_logcost, wardur, mean_factnum, mean_factnum2, 
                  mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0, 0)
-  storage_treated_it[wardur]  <- get_logit(X_treat, coef(glm2.ie))
-  storage_control_it[wardur]  <- get_logit(X_control, coef(glm2.ie))
+  storage_treated_it[wardur]  <- get_logit(X_treat, coef(glm2))
+  storage_control_it[wardur]  <- get_logit(X_control, coef(glm2))
 }
 
 modified_y <- storage_treated_it - storage_control_it
 
-# Plot. 
+# Plot
 plot(1:315, original_y, type = "l", ylim = c(0, 0.8),lty=4, ylab = "Marginal effects of UN peacekeeping operations", xlab = "Duration of wars in months")
 par(new=TRUE)
 plot(1:315, modified_y, type = "l", ylim = c(0, 0.8), ylab = "Marginal effects of UN peacekeeping operations", xlab = "Duration of wars in months")
