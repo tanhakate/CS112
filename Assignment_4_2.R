@@ -47,9 +47,9 @@ for (logcost in 6:16) {
   # Hypothetical nation with predictors held at their means, varying duration of war.
   # Predicting outcome of peacekeeping success when treatment = 1 and when treatment = 0
   X_treat <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
-               mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1*logcost)
+               mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1)
   X_control <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
-                 mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0*logcost)
+                 mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0)
   
   storage_treated[logcost]  <- get_logit(X_treat, coef(glm1))
   storage_control[logcost]  <- get_logit(X_control, coef(glm1))
@@ -69,7 +69,7 @@ for (logcost in 6:16) {
   X_treat <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
                mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1, 1*logcost)
   X_control <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
-                 mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0, 0)
+                 mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0, 0*logcost)
   storage_treated_it[logcost]  <- get_logit(X_treat, coef(glm2))
   storage_control_it[logcost]  <- get_logit(X_control, coef(glm2))
 }
