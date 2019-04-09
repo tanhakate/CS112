@@ -10,8 +10,8 @@ foo <- foo[c(-19, -47), ]
 which(is.na(foo) == TRUE)
 # Take predictors at their means
 mean_wartype <- mean(foo$wartype)
-mean_logcost <- mean(foo$logcost)
 mean_factnum <- mean(foo$factnum)
+mean_wardur <- mean(foo$wardur)
 mean_factnum2 <- mean(foo$factnum2)
 mean_trnsfcap <- mean(foo$trnsfcap)
 mean_develop <- mean(foo$develop)
@@ -38,21 +38,21 @@ get_logit <- function(X, coef) {
 }
 
 #Create matrix to store logitresults
-storage_treated <- rep(NA, 315)
-storage_control <- rep(NA, 315)
+storage_treated <- rep(NA, 10)
+storage_control <- rep(NA, 10)
 
-# For each war duration
-for (wardur in 1:315) {
+# For each logcost
+for (logcost in 6:16) {
   
   # Hypothetical nation with predictors held at their means, varying duration of war.
   # Predicting outcome of peacekeeping success when treatment = 1 and when treatment = 0
-  X_treat <- c(mean_wartype, mean_logcost, wardur, mean_factnum, mean_factnum2, 
-               mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1)
-  X_control <- c(mean_wartype, mean_logcost, wardur, mean_factnum, mean_factnum2, 
-                 mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0)
+  X_treat <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
+               mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1*logcost)
+  X_control <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
+                 mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0*logcost)
   
-  storage_treated[wardur]  <- get_logit(X_treat, coef(glm1))
-  storage_control[wardur]  <- get_logit(X_control, coef(glm1))
+  storage_treated[logcost]  <- get_logit(X_treat, coef(glm1))
+  storage_control[logcost]  <- get_logit(X_control, coef(glm1))
 }
 
 # treatment effect should be difference between treatment = 1 and treatment = 0
@@ -61,26 +61,26 @@ original_y <- storage_treated - storage_control
 
 
 # Logit results for modified model
-storage_treated_it <- rep(NA, 315)
-storage_control_it <- rep(NA, 315)
+storage_treated_it <- rep(NA, 10)
+storage_control_it <- rep(NA, 10)
 
-for (wardur in 1:315) {
+for (logcost in 6:16) {
   # Interaction term values when treatment = 1 is 1*mean_logcost and when treatment = 0, it's just 0.
-  X_treat <- c(mean_wartype, mean_logcost, wardur, mean_factnum, mean_factnum2, 
-               mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1, 1*mean_logcost)
-  X_control <- c(mean_wartype, mean_logcost, wardur, mean_factnum, mean_factnum2, 
+  X_treat <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
+               mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 1, 1*logcost)
+  X_control <- c(mean_wartype, logcost, mean_wardur, mean_factnum, mean_factnum2, 
                  mean_trnsfcap, mean_develop, mean_exp, mean_decade, mean_treaty, 0, 0)
-  storage_treated_it[wardur]  <- get_logit(X_treat, coef(glm2))
-  storage_control_it[wardur]  <- get_logit(X_control, coef(glm2))
+  storage_treated_it[logcost]  <- get_logit(X_treat, coef(glm2))
+  storage_control_it[logcost]  <- get_logit(X_control, coef(glm2))
 }
 
 modified_y <- storage_treated_it - storage_control_it
 
 # Plot
-plot(1:315, original_y, type = "l", ylim = c(0, 0.8),lty=4, ylab = "Marginal effects of UN peacekeeping operations", xlab = "Duration of wars in months")
+plot(1:16, original_y, type = "l", ylim = c(0, 0.8),lty=4, ylab = "Marginal effects of UN peacekeeping operations", xlab = "Logcost")
 par(new=TRUE)
-plot(1:315, modified_y, type = "l", ylim = c(0, 0.8), ylab = "Marginal effects of UN peacekeeping operations", xlab = "Duration of wars in months")
-legend("topright", legend= c("Original Model","Model with Interaction Term"), lty=c(4,1), cex=1) 
+plot(1:16, modified_y, type = "l", ylim = c(0, 0.8), ylab = "Marginal effects of UN peacekeeping operations", xlab = "Logcost")
+legend("topleft", legend= c("Original Model","Model with Interaction Term"), lty=c(4,1), cex=1) 
 title(main="Causal Effect of Multidimensional UN Peacekeeping Operations") 
 
 ##Question 3
